@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         failOnDeprecation="true"
+         failOnNotice="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <!-- This parser against OpenFGA's own reference fixtures. -->
+        <testsuite name="conformance">
+            <directory>tests/Conformance</directory>
+        </testsuite>
+        <!-- One suite per bridge, not one for both: PHPUnit loads a suite's
+             files before it filters anything, so a vendor tree with only one
+             of the two frameworks could not so much as parse the other's
+             test. CI builds exactly such a tree to check Symfony 6.4. -->
+        <testsuite name="laravel">
+            <file>tests/Bridge/LaravelBridgeTest.php</file>
+        </testsuite>
+        <testsuite name="symfony">
+            <file>tests/Bridge/SymfonyBridgeTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+    <php>
+        <ini name="date.timezone" value="UTC"/>
+    </php>
+</phpunit>

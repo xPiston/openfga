@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The live suite: this SDK against a real OpenFGA server.
+
+    Separate from the default suite on purpose. It needs a server, so a red
+    run here means "OpenFGA is not running" as often as "this is broken", and
+    that is not what a merge gate is for. But OpenFGA is open source and
+    starts in one command, so unlike a hosted platform there is no excuse for
+    not having this at all:
+
+        docker run -d -p 8080:8080 openfga/openfga run
+        OPENFGA_URL=http://localhost:8080 vendor/bin/phpunit -c phpunit.live.xml
+
+    Every test creates its own store and deletes it afterwards, so the suite
+    is safe to point at any OpenFGA you are willing to write to - though not,
+    obviously, at a production one.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         failOnDeprecation="true"
+         failOnNotice="true">
+    <testsuites>
+        <testsuite name="live">
+            <directory>tests/Live</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="date.timezone" value="UTC"/>
+        <env name="OPENFGA_URL" value="http://localhost:8080"/>
+    </php>
+</phpunit>

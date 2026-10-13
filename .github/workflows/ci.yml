@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} · ${{ matrix.dependencies }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+        dependencies: [highest]
+        include:
+          # The lowest versions the constraints allow, so a dependency this
+          # package claims to support is one it is actually tested against.
+          - php: '8.2'
+            dependencies: lowest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, mbstring
+          coverage: none
+          ini-values: error_reporting=E_ALL, date.timezone=UTC
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+
+      - run: composer test
+        # Deprecations, notices and warnings fail the suite: see phpunit.xml.
+
+  # OpenFGA is open source and ships a container, so there is no excuse for a
+  # PHP SDK that has never spoken to it. This job runs the live suite against
+  # a real server on every push - which is what separates "the documentation
+  # says so" from "the server agrees".
+  live:
+    name: Against a real OpenFGA server
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      # Started here rather than as a `services:` container, and that is not
+      # a style choice. The image's entrypoint is `/openfga` with no default
+      # command, so it needs `run` as an argument - and a service container
+      # cannot pass one. As a service it would start, print its usage and
+      # exit, and the job would fail on a connection refused that looks like
+      # a network problem.
+      - name: Start OpenFGA
+        run: |
+          docker run -d --name openfga -p 8080:8080 openfga/openfga:latest run
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/healthz; then echo; echo "ready"; exit 0; fi
+            sleep 2
+          done
+          echo "OpenFGA never became healthy:" >&2
+          docker logs openfga >&2
+          exit 1
+
+      - name: Which version answered
+        run: docker exec openfga /openfga version
+
+      - name: The live suite
+        run: composer test:live
+        env:
+          OPENFGA_URL: http://localhost:8080
+
+      - name: Server logs, if anything failed
+        if: failure()
+        run: docker logs openfga
+
+  # The matrix above resolves one vendor tree per PHP version, and Laravel
+  # pulls Symfony 7 into it - so "Symfony 6.4" is a claim that tree cannot
+  # test. This job builds one that can.
+  symfony-64:
+    name: Symfony 6.4 (bundle only)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: A vendor tree with Symfony 6.4 and no Laravel
+        run: |
+          composer remove --dev --no-update orchestra/testbench illuminate/support illuminate/contracts
+          composer require --dev --no-update \
+            "symfony/config:^6.4" \
+            "symfony/dependency-injection:^6.4" \
+            "symfony/http-kernel:^6.4" \
+            "symfony/http-foundation:^6.4" \
+            "symfony/http-client:^6.4" \
+            "symfony/security-core:^6.4" \
+            "symfony/yaml:^6.4"
+
+      # Highest within 6.4, not lowest: 6.4.0 predates PHP 8.4 and spends the
+      # run emitting its own deprecations. What is being claimed is the 6.4
+      # LTS line, which is what its current patch is.
+      - uses: ramsey/composer-install@v3
+
+      # Every suite but the Laravel bridge, which has no framework to run in
+      # here - and that is the point of the job.
+      - run: vendor/bin/phpunit --testsuite unit,conformance,symfony
+
+  quality:
+    name: Static analysis and style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - run: composer test:lint
+      - run: composer analyse
+      - run: composer audit --locked || composer audit

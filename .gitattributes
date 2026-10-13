@@ -1,0 +1,19 @@
+# What an application installing this package does not need in its vendor
+# directory - including the 29 reference fixtures, which are 430 KB of
+# somebody else's test data and belong to the test suite rather than to the
+# library.
+/.github            export-ignore
+/tests              export-ignore
+/.editorconfig      export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/phpunit.xml        export-ignore
+/phpunit.live.xml   export-ignore
+/phpstan.neon       export-ignore
+/pint.json          export-ignore
+
+* text=auto eol=lf
+
+# The DSL fixtures are compared byte for byte against a reference
+# implementation, so git must not touch their line endings.
+*.fga               -text
