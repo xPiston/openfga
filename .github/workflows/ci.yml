@@ -66,6 +66,12 @@ jobs:
       # cannot pass one. As a service it would start, print its usage and
       # exit, and the job would fail on a connection refused that looks like
       # a network problem.
+      # `:latest` on purpose, and the consequence is deliberate: a new
+      # OpenFGA release can turn this job red with no change to this
+      # repository. For an SDK that is what you want - the point is to find
+      # out when the server's behaviour moves, not to be insulated from it.
+      # So a red run here means "read the diff upstream" before it means
+      # "this package is broken". Pin a tag if you ever need a quiet week.
       - name: Start OpenFGA
         run: |
           docker run -d --name openfga -p 8080:8080 openfga/openfga:latest run
