@@ -1,0 +1,44 @@
+version: 2
+
+# There is no committed `composer.lock` here, on purpose: this is a library,
+# and a lock would describe one application's resolution rather than what the
+# package supports. So what Dependabot proposes are constraint changes in
+# `composer.json`, which is exactly the review worth having - "does this
+# package claim to support that version" is a decision, not a lock refresh.
+#
+# Grouping, because several of these cannot resolve on their own.
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # The major of testbench follows the major of Laravel, so neither moves
+      # without the other: testbench 11 is Laravel 13, testbench 10 is 12.
+      laravel:
+        patterns:
+          - 'illuminate/*'
+          - 'orchestra/*'
+      # And Laravel brings Symfony with it. A Laravel bump that landed first
+      # would leave these unresolvable until they followed.
+      symfony:
+        patterns:
+          - 'symfony/*'
+      # PHPUnit cannot move alone either - its own components are versioned
+      # with it.
+      phpunit:
+        patterns:
+          - 'phpunit/*'
+      dev-tooling:
+        patterns:
+          - 'laravel/pint'
+          - 'phpstan/*'
+          - 'larastan/*'
+
+  # The workflows pin actions by major (`actions/checkout@v4`), which is a
+  # moving target nobody is watching otherwise.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
