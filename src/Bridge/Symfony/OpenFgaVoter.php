@@ -65,7 +65,19 @@ final class OpenFgaVoter extends Voter
         return $this->objectFor($subject) !== null;
     }
 
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    /**
+     * The trailing variadic is deliberate, and it is the only way to satisfy
+     * every supported Symfony at once.
+     *
+     * Symfony 7.3 added a fourth parameter here - a `Vote` object a voter may
+     * enrich with the reason for its decision - and 8.0 made that signature
+     * the only compatible one, turning a three-parameter override into a
+     * fatal error. Writing `?Vote $vote = null` instead would name a class
+     * that does not exist on 6.4. A variadic matches both, and this voter has
+     * no reason to add anyway: the decision is one check against OpenFGA, and
+     * its answer is the return value.
+     */
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, mixed ...$vote): bool
     {
         $object = $this->objectFor($subject);
 

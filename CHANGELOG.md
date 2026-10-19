@@ -7,6 +7,27 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Symfony voter brought the container down on Symfony 7.3 and later.**
+  `Voter::voteOnAttribute()` gained a fourth parameter there - a `Vote` the
+  voter may annotate with its reason - and Symfony 8 made that signature the
+  only compatible one, so `OpenFgaVoter` was a fatal error at compile time
+  rather than a failing check. It now ends in a variadic, which satisfies 6.4
+  through 8 alike. Nothing to change in an application: the voter is wired the
+  same way and votes the same.
+
+### Changed
+
+- **The development constraints now allow Laravel 13, Symfony 8 and
+  PHPUnit 13.** `composer.json` claimed support for Laravel 13, but
+  `orchestra/testbench: ^10.0` pinned the resolver to Laravel 12 - the major
+  of testbench follows the major of Laravel - so the `highest` CI job had
+  never once run against the version the package advertised. Symfony had to
+  come along with it, since Laravel 13 depends on Symfony 8. Nothing in
+  `require` moved: this is still PHP 8.2 and PSR interfaces, and no consumer's
+  resolution changes.
+
 ## [0.1.0] - 2026-10-13
 
 First release. A PHP SDK for [OpenFGA](https://openfga.dev), usable from
