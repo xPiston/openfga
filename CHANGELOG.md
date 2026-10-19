@@ -7,6 +7,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-19
+
 ### Fixed
 
 - **The Symfony voter brought the container down on Symfony 7.3 and later.**
@@ -131,5 +133,6 @@ refused with a message), a CEL parser, semantic model validation, the AuthZEN
 endpoints added in OpenFGA 1.21, private-key JWT client assertions, and any
 retry or caching layer.
 
-[Unreleased]: https://github.com/xPiston/openfga/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/xPiston/openfga/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/xPiston/openfga/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/xPiston/openfga/releases/tag/v0.1.0
