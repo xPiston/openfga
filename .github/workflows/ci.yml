@@ -25,7 +25,7 @@ jobs:
             dependencies: lowest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -35,7 +35,7 @@ jobs:
           ini-values: error_reporting=E_ALL, date.timezone=UTC
 
       - name: Install dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@v4
         with:
           dependency-versions: ${{ matrix.dependencies }}
 
@@ -51,14 +51,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
 
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
 
       # Started here rather than as a `services:` container, and that is not
       # a style choice. The image's entrypoint is `/openfga` with no default
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -125,7 +125,7 @@ jobs:
       # Highest within 6.4, not lowest: 6.4.0 predates PHP 8.4 and spends the
       # run emitting its own deprecations. What is being claimed is the 6.4
       # LTS line, which is what its current patch is.
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
 
       # Every suite but the Laravel bridge, which has no framework to run in
       # here - and that is the point of the job.
@@ -136,14 +136,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
 
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
 
       - run: composer test:lint
       - run: composer analyse
